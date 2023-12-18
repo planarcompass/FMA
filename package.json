@@ -34,6 +34,7 @@
     "webpack-merge": "^5.10.0"
   },
   "dependencies": {
+    "grid-engine": "^2.43.2",
     "phaser": "^3.60.0"
   }
 }

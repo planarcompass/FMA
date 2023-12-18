@@ -1,45 +1,37 @@
 import Phaser from 'phaser';
-import logoImg from './assets/logo.png';
+import { GridEngine, GridEngineHeadless } from "grid-engine";
 
-class MyGame extends Phaser.Scene
-{
-    constructor ()
-    {
-        super();
-    }
+import Preload from './scenes/Preload';
+import Level from './scenes/Level';
 
-    preload ()
-    {
-        //  This is an example of a bundled image:
-        this.load.image('logo', logoImg);
-
-        //  This is an example of loading a static image from the public folder:
-        this.load.image('background', 'assets/bg.jpg');
-    }
-      
-    create ()
-    {
-        this.add.image(400, 300, 'background');
-
-        const logo = this.add.image(400, 150, 'logo');
-      
-        this.tweens.add({
-            targets: logo,
-            y: 450,
-            duration: 2000,
-            ease: "Power2",
-            yoyo: true,
-            loop: -1
-        });
-    }
-}
 
 const config = {
     type: Phaser.AUTO,
-    parent: 'phaser-example',
-    width: 800,
-    height: 600,
-    scene: MyGame
+    parent: 'FMA',
+    pixelArt: true,
+    clearBeforeRender: false,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        parent: 'phaser-example',
+        width: 1024,
+        height: 576
+    },
+    //physics: {
+        //default: 'arcade'
+    //},
+	scene: [
+		Preload,
+		Level
+		],
+		plugins: {
+    scene: [
+      {
+        key: "gridEngine",
+        plugin: GridEngine,
+        mapping: "gridEngine",
+      },
+    ]
+  },
 };
 
 const game = new Phaser.Game(config);
