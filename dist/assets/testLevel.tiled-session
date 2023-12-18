@@ -1,0 +1,93 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "testMap.json",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "C:/Users/ITOnly/Documents/GameDev/writheweald/assets/maps/level1.json": {
+            "expandedObjectLayers": [
+                2
+            ],
+            "scale": 1.34425,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 400.2231727729217,
+                "y": 304.2588804165892
+            }
+        },
+        "C:/Users/ITOnly/Documents/GameDev/writheweald/assets/maps/level1.json#objects": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ITOnly/Documents/GameDev/writheweald/assets/maps/level1.json#tiles": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "Test.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "test.json": {
+            "expandedObjectLayers": [
+                2
+            ],
+            "scale": 1.1202083333333333,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 478.48242514413243,
+                "y": 318.6907197321927
+            }
+        },
+        "test.json#Test": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "test.tmj": {
+            "scale": 1,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 237,
+                "y": -89
+            }
+        },
+        "testMap.json": {
+            "scale": 1.1202083333333333,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 392.7840803421983,
+                "y": 340.1153059326762
+            }
+        },
+        "testMap.json#Test": {
+            "scaleInDock": 1
+        }
+    },
+    "last.exportedFilePath": "C:/Users/ITOnly/Documents/GameDev/FMA/public/assets",
+    "last.imagePath": "C:/Users/ITOnly/Documents/GameDev/FMA/public/assets",
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
+    "map.lastUsedFormat": "json",
+    "openFiles": [
+        "Test.tsx",
+        "C:/Users/ITOnly/Documents/GameDev/writheweald/assets/maps/level1.json",
+        "test.json",
+        "testMap.json"
+    ],
+    "project": "testLevel.tiled-project",
+    "property.type": "bool",
+    "recentFiles": [
+        "Test.tsx",
+        "C:/Users/ITOnly/Documents/GameDev/writheweald/assets/maps/level1.json",
+        "test.json",
+        "testMap.json",
+        "test.tmj"
+    ],
+    "tileset.lastUsedFormat": "tsx"
+}
