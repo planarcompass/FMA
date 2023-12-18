@@ -17,7 +17,7 @@
   "bugs": {
     "url": "https://github.com/planarcompass/FMA/issues"
   },
-  "homepage": "https://planarcompass.github.io/FMA/",
+  "homepage": "https://planarcompass.github.io/FMA/dist",
   "devDependencies": {
     "@babel/core": "^7.23.2",
     "@babel/preset-env": "^7.23.2",
