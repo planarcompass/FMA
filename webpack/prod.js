@@ -61,10 +61,10 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: "./index.html"
     }),
-    //new CopyPlugin({
-      //patterns: [
-          //{ from: 'public/assets', to: 'assets' },
-      //],
-    //}),
+    new CopyPlugin({
+      patterns: [
+          { from: 'public/assets', to: 'assets' },
+      ],
+    }),
   ]
 };
