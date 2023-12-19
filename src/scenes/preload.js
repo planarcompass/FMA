@@ -31,7 +31,7 @@ export default class Preload extends Phaser.Scene {
     //start loading
     //this.load.pack('Preload', 'assets/pack.json', 'Preload');
 	this.load.image ('tiles', 'public/assets/spritesheet.png');
-	this.load.atlas('sprites', 'public/assets/spritesheet.png', 'public/assets/spritesheet.json');
+	this.load.atlas('sprites', ['public/assets/spritesheet.png', 'public/assets/NormalMap.png'], 'assets/spritesheet.json');
 	this.load.tilemapTiledJSON('testMap', 'public/assets/testMap.json');
   }
       

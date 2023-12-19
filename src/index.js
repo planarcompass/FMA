@@ -16,6 +16,7 @@ const config = {
         width: 1024,
         height: 576
     },
+	maxLights: 80,
     //physics: {
         //default: 'arcade'
     //},

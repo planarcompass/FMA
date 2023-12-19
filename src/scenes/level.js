@@ -9,7 +9,7 @@ export default class Level extends Phaser.Scene {
 
   create() 
   {
-    this.lights.enable().setAmbientColor(0x080808);
+    this.lights.enable().setAmbientColor(0x000000);
 	this.map = this.make.tilemap({ key: 'testMap' });
 	const tiles = this.map.addTilesetImage('Test', 'sprites');
 	const layer = this.map.createLayer(0, tiles, 0, 0).setPipeline('Light2D');
@@ -25,7 +25,7 @@ export default class Level extends Phaser.Scene {
       y: 0,
     });
 	
-	this.player.light = this.lights.addLight(this.player.x, this.player.y, 192, 0xf8f3af);
+	this.player.light = this.lights.addLight(this.player.x, this.player.y, 192, 0xf7ce55);
 	let torch = true;
 	const player = this.player;
 	this.input.keyboard.on('keydown-T', event =>
@@ -40,7 +40,7 @@ export default class Level extends Phaser.Scene {
 				torch = true;
 				player.light.setRadius(192);
 				player.light.setIntensity(1);
-				player.light.setColor(0xf8f3af);
+				player.light.setColor(0xf7ce55);
 			}
         });
 	
@@ -57,11 +57,11 @@ export default class Level extends Phaser.Scene {
 	numberOfDirections: 8,
 	  };
 
-  this.gridEngine.create(
-    this.map, // Phaser.Tilemaps.Tilemap
-    gridEngineConfig,
-  );
- 
+	this.gridEngine.create(
+		this.map, // Phaser.Tilemaps.Tilemap
+		gridEngineConfig,
+	);
+	this.cameras.main.centerOn(this.player.x, this.player.y);
   
 	this.input.keyboard.on('keydown-S', event =>
         {
@@ -118,13 +118,33 @@ export default class Level extends Phaser.Scene {
             y: object.y-32
           }
         }
-		if (object.type === 'light') {
-			let lamp = this.add.image(object.x, object.y -32, 'sprites', 'lamp.png');
-			lamp.setOrigin(0,0);
-			lamp.setPipeline('Light2D');
-			this.lights.addLight(object.x, object.y, 192, 0xf8f3af);
+		if (object.type === 'lamp') {
+			let lampSprite = this.add.image(object.x, object.y -32, 'sprites', 'lamp.png');
+			lampSprite.setOrigin(0,0);
+			lampSprite.setPipeline('Light2D');
+			this.lights.addLight(object.x + 16, object.y -16, 192 , 0xf7ce55);
           }
-     
+		if (object.type === 'windowWest') {
+		
+			this.lights.addLight(object.x, object.y + 16, 192);
+		
+			this.lights.addLight(object.x + 48, object.y + 16, 96);
+			this.lights.addLight(object.x + 80, object.y + 16, 48);
+			this.lights.addLight(object.x + 112, object.y + 16, 24);
+		
+          }
+		  
+		  if (object.type === 'windowEast') {
+			console.log(object.properties);
+			this.lights.addLight(object.x, object.y + 16, 192);
+		
+			this.lights.addLight(object.x - 16, object.y + 16, 96);
+			this.lights.addLight(object.x - 48, object.y + 16, 48);
+			this.lights.addLight(object.x - 80, object.y + 16, 24);
+		  }
+			
+			
+      
       }); 
   }
 }

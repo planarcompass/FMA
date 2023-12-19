@@ -62,8 +62,8 @@
 		},
 		"lamp.png": {
 			"frame": {
-				"x": 33,
-				"y": 33,
+				"x": 32,
+				"y": 32,
 				"w": 32,
 				"h": 32
 			},
@@ -99,6 +99,26 @@
 				"w": 32,
 				"h": 32
 			}
+		},
+		"window.png": {
+			"frame": {
+				"x": 64,
+				"y": 32,
+				"w": 32,
+				"h": 32
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
 		}
 	},
 	"meta": {
@@ -108,7 +128,7 @@
 		"format": "RGBA8888",
 		"size": {
 			"w": 96,
-			"h": 66
+			"h": 64
 		},
 		"scale": "1"
 	}
