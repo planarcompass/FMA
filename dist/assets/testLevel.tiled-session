@@ -81,7 +81,7 @@
         "testMap.json"
     ],
     "project": "testLevel.tiled-project",
-    "property.type": "string",
+    "property.type": "bool",
     "recentFiles": [
         "test.json",
         "Test.tsx",

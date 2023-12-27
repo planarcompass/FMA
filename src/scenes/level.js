@@ -1,5 +1,8 @@
+import { Mrpas } from 'mrpas'
 import Player from './sprites/player';
 export default class Level extends Phaser.Scene {
+	
+
   constructor() 
   {
     super({
@@ -9,14 +12,29 @@ export default class Level extends Phaser.Scene {
 
   create() 
   {
-    this.lights.enable().setAmbientColor(0x000000);
+	this.fov = Mrpas;
+	
+    this.lights.enable();
+	this.lights.setAmbientColor(0x000000);
 	this.map = this.make.tilemap({ key: 'testMap' });
 	const tiles = this.map.addTilesetImage('Test', 'sprites');
-	const layer = this.map.createLayer(0, tiles, 0, 0).setPipeline('Light2D');
+	this.groundLayer = this.map.createLayer(0, tiles, 0, 0).setPipeline('Light2D');
 	this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
+	
+	// using a BlankDynamicLayer for procedural dungeon generation
+		//this.groundLayer = this.map.createBlankDynamicLayer('Ground', tileset)
+
+		// generate ground tile layer procedurally...
+
+	this.fov = new Mrpas(this.map.width, this.map.height, (x, y) => {
+		const tile = this.groundLayer.getTileAt(x, y);
+		return tile && !tile.collides;
+	})
+		
 	this.cursorGraphic = this.add.image(0, 0, 'sprites', 'cursor_green.png');
 	this.cursorGraphic.setOrigin(0,0);
 	this.spawnpoints = [];
+	this.fovObjects = [];
 	this.convertObjects();
 	let spawn = this.spawnpoints[this.registry.get('spawn')];
 	this.player = new Player({
@@ -56,7 +74,10 @@ export default class Level extends Phaser.Scene {
     ],
 	numberOfDirections: 8,
 	  };
-
+	this.playerCord = {};
+	this.playerCord.x = this.player.x;
+	this.playerCord.y = this.player.y;
+	this.canUpdateFOV = true;
 	this.gridEngine.create(
 		this.map, // Phaser.Tilemaps.Tilemap
 		gridEngineConfig,
@@ -91,12 +112,36 @@ export default class Level extends Phaser.Scene {
         }, this);
 
 	this.hudText = this.add.text(800, 10, 'WASD to move camera \n Q to center on player \n T to toggle torch', { color: '#00ff00', align: 'right' });
-
-    
+	   
   }
 
   update (time, delta) 
   {
+	if (this.canUpdateFOV) {	
+		this.computeFOV();
+		this.playerCord.x = this.player.x;
+		this.playerCord.y = this.player.y;
+		this.fovObjects.forEach((fovObject) => {
+			let fovTile = this.groundLayer.getTileAt(this.map.worldToTileX(fovObject.x), this.map.worldToTileX(fovObject.y));
+			if (fovTile.alpha < 1) {
+				if (fovObject.seen) {
+					fovObject.alpha = .25;
+				} else {
+				fovObject.alpha = 0;
+				}
+			} else {
+				fovObject.alpha = 1;
+				fovObject.seen = true;
+			}
+		});
+			
+		this.canUpdateFOV = false;
+	}	
+	const distance = Phaser.Math.Distance.Between(this.playerCord.x, this.playerCord.y, this.player.x, this.player.y);
+	if (distance >= 32) {
+		this.canUpdateFOV = true;
+	}
+	
 	this.player.update(time, delta);
 	this.player.light.setPosition(this.player.x, this.player.y);
 	this.hudText.setPosition(800 + this.cameras.main.scrollX, 10 + this.cameras.main.scrollY);
@@ -104,6 +149,7 @@ export default class Level extends Phaser.Scene {
 	let cleanCursorY = Phaser.Math.FloorTo((this.input.activePointer.y + this.cameras.main.scrollY)/32)*32;
 	this.cursorGraphic.setPosition(cleanCursorX, cleanCursorY);
   }
+  
   convertObjects ()
   {
 	  //objects in map are checked by type(assigned in object layer in Tiled) and the appopriate extended sprite is created
@@ -120,6 +166,8 @@ export default class Level extends Phaser.Scene {
         }
 		if (object.type === 'lamp') {
 			let lampSprite = this.add.image(object.x, object.y -32, 'sprites', 'lamp.png');
+			lampSprite.seen = false;
+			this.fovObjects.push(lampSprite);
 			lampSprite.setOrigin(0,0);
 			lampSprite.setPipeline('Light2D');
 			this.lights.addLight(object.x + 16, object.y -16, 192 , 0xf7ce55);
@@ -135,7 +183,7 @@ export default class Level extends Phaser.Scene {
           }
 		  
 		  if (object.type === 'windowEast') {
-			console.log(object.properties);
+			
 			this.lights.addLight(object.x, object.y + 16, 192);
 		
 			this.lights.addLight(object.x - 16, object.y + 16, 96);
@@ -147,5 +195,74 @@ export default class Level extends Phaser.Scene {
       
       }); 
   }
+
+computeFOV()
+{
+	if (!this.fov || !this.map || !this.groundLayer || !this.player)
+	{
+		return
+	}
+
+	// get camera view bounds
+	const camera = this.cameras.main
+	const bounds = new Phaser.Geom.Rectangle(
+		0,
+		0,
+		this.map.worldToTileX(this.map.widthInPixels) + 2,
+		this.map.worldToTileX(this.map.heightInPixels) + 3
+	)
+
+	// set all tiles within camera view to invisible
+	for (let y = bounds.y; y < bounds.y + bounds.height; y++)
+	{
+		for (let x = bounds.x; x < bounds.x + bounds.width; x++)
+		{
+			if (y < 0 || y >= this.map.height || x < 0 || x >= this.map.width)
+			{
+				continue
+			}
+
+			const tile = this.groundLayer.getTileAt(x, y)
+			if (!tile)
+			{
+				continue
+			}
+			if (tile.seen){
+				tile.alpha = .25;
+			} else {
+			tile.alpha = 0
+			}
+		}
+	}
+
+	// get player's position
+	const px = this.map.worldToTileX(this.player.x)
+	const py = this.map.worldToTileY(this.player.y)
+	
+	// compute fov from player's position
+	this.fov.compute(
+		px,
+		py,
+		Infinity,
+		(x, y) => {
+			const tile = this.groundLayer.getTileAt(x, y)
+			if (!tile)
+			{
+				return false
+			}
+			return tile.alpha > 0
+		},
+		(x, y) => {
+			const tile = this.groundLayer.getTileAt(x, y)
+			if (!tile)
+			{
+				return
+			}
+			tile.alpha = 1
+			tile.seen = true;
+			}
+		)
+	}
+
 }
   

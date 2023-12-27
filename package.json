@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "grid-engine": "^2.43.2",
+    "mrpas": "^2.0.0",
     "phaser": "^3.60.0"
   }
 }
