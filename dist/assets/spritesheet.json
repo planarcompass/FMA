@@ -60,7 +60,7 @@
 				"h": 32
 			}
 		},
-		"lamp.png": {
+		"grass.png": {
 			"frame": {
 				"x": 32,
 				"y": 32,
@@ -80,7 +80,7 @@
 				"h": 32
 			}
 		},
-		"mage.png": {
+		"lamp.png": {
 			"frame": {
 				"x": 64,
 				"y": 0,
@@ -100,10 +100,30 @@
 				"h": 32
 			}
 		},
-		"window.png": {
+		"mage.png": {
 			"frame": {
 				"x": 64,
 				"y": 32,
+				"w": 32,
+				"h": 32
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"window.png": {
+			"frame": {
+				"x": 0,
+				"y": 64,
 				"w": 32,
 				"h": 32
 			},
@@ -128,7 +148,7 @@
 		"format": "RGBA8888",
 		"size": {
 			"w": 96,
-			"h": 64
+			"h": 96
 		},
 		"scale": "1"
 	}

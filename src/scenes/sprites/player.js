@@ -6,6 +6,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
     this.scene = config.scene;
 	this.setOrigin(0,0);
 	this.setPipeline('Light2D');
+	this.torch = false;
     this.scene.add.existing(this);
   }
   update(time, delta) 

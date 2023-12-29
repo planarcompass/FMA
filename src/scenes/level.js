@@ -15,7 +15,8 @@ export default class Level extends Phaser.Scene {
 	this.fov = Mrpas;
 	
     this.lights.enable();
-	this.lights.setAmbientColor(0x000000);
+	this.lights.setAmbientColor(0x222034);
+	//this.lights.setAmbientColor(0xffffff);
 	this.map = this.make.tilemap({ key: 'testMap' });
 	const tiles = this.map.addTilesetImage('Test', 'sprites');
 	this.groundLayer = this.map.createLayer(0, tiles, 0, 0).setPipeline('Light2D');
@@ -35,6 +36,7 @@ export default class Level extends Phaser.Scene {
 	this.cursorGraphic.setOrigin(0,0);
 	this.spawnpoints = [];
 	this.fovObjects = [];
+	this.fovLights = [];
 	this.convertObjects();
 	let spawn = this.spawnpoints[this.registry.get('spawn')];
 	this.player = new Player({
@@ -43,22 +45,24 @@ export default class Level extends Phaser.Scene {
       y: 0,
     });
 	
-	this.player.light = this.lights.addLight(this.player.x, this.player.y, 192, 0xf7ce55);
-	let torch = true;
+	this.player.light = this.lights.addLight(this.player.x, this.player.y, 192, 0xfbf236);
+	this.player.torch = true;
 	const player = this.player;
 	this.input.keyboard.on('keydown-T', event =>
         {
-            if (torch == true)
+            if (this.player.torch == true)
 			{
-				torch = false;
+				this.player.torch = false;
+				this.canUpdateFOV = true;
 				player.light.setRadius(96);
 				player.light.setIntensity(.5);
-				player.light.setColor(0xb5d4ea);
+				player.light.setColor(0x639bff);
 			} else {
-				torch = true;
+				this.player.torch = true;
+				this.canUpdateFOV = true;
 				player.light.setRadius(192);
 				player.light.setIntensity(1);
-				player.light.setColor(0xf7ce55);
+				player.light.setColor(0xfbf236);
 			}
         });
 	
@@ -134,6 +138,19 @@ export default class Level extends Phaser.Scene {
 				fovObject.seen = true;
 			}
 		});
+		this.fovLights.forEach((fovLight) => {
+			let fovTile = this.groundLayer.getTileAt(this.map.worldToTileX(fovLight.x), this.map.worldToTileX(fovLight.y));
+			if (fovTile.alpha < 1) {
+				if (fovLight.seen) {
+					fovLight.setIntensity(.5);
+				} else {
+				fovLight.setIntensity(0);
+				}
+			} else {
+				fovLight.setIntensity(1);
+				fovLight.seen = true;
+			}	
+		});
 			
 		this.canUpdateFOV = false;
 	}	
@@ -170,25 +187,41 @@ export default class Level extends Phaser.Scene {
 			this.fovObjects.push(lampSprite);
 			lampSprite.setOrigin(0,0);
 			lampSprite.setPipeline('Light2D');
-			this.lights.addLight(object.x + 16, object.y -16, 192 , 0xf7ce55);
+			let lampLight = this.lights.addLight(object.x + 16, object.y -16, 192 , 0xfbf236);
+			this.fovLights.push(lampLight);
+		  }
+		  		  if (object.type === 'wall') {
+			let wall = this.add.image(object.x, object.y -32, 'sprites', 'dungeonWallStoneGrey1.png');
+			wall.seen = false;
+			//this.fovObjects.push(wall);
+			wall.setOrigin(0,0);
+			wall.setPipeline('Light2D');
           }
 		if (object.type === 'windowWest') {
 		
-			this.lights.addLight(object.x, object.y + 16, 192);
+			let window1 = this.lights.addLight(object.x, object.y + 16, 192, 0xcbdbfc);
 		
-			this.lights.addLight(object.x + 48, object.y + 16, 96);
-			this.lights.addLight(object.x + 80, object.y + 16, 48);
-			this.lights.addLight(object.x + 112, object.y + 16, 24);
-		
+			let window2 = this.lights.addLight(object.x + 48, object.y + 16, 96, 0xcbdbfc);
+			let window3 = this.lights.addLight(object.x + 80, object.y + 16, 48, 0xcbdbfc);
+			let window4 = this.lights.addLight(object.x + 112, object.y + 16, 24, 0xcbdbfc);
+			this.fovLights.push(window1);
+			this.fovLights.push(window2);
+			this.fovLights.push(window3);
+			this.fovLights.push(window4);
+			
           }
 		  
 		  if (object.type === 'windowEast') {
 			
-			this.lights.addLight(object.x, object.y + 16, 192);
+			let window1 = this.lights.addLight(object.x, object.y + 16, 192, 0xcbdbfc);
 		
-			this.lights.addLight(object.x - 16, object.y + 16, 96);
-			this.lights.addLight(object.x - 48, object.y + 16, 48);
-			this.lights.addLight(object.x - 80, object.y + 16, 24);
+			let window2 = this.lights.addLight(object.x - 16, object.y + 16, 96, 0xcbdbfc);
+			let window3 = this.lights.addLight(object.x - 48, object.y + 16, 48, 0xcbdbfc);
+			let window4 = this.lights.addLight(object.x - 80, object.y + 16, 24, 0xcbdbfc);
+			this.fovLights.push(window1);
+			this.fovLights.push(window2);
+			this.fovLights.push(window3);
+			this.fovLights.push(window4);
 		  }
 			
 			
@@ -228,9 +261,9 @@ computeFOV()
 				continue
 			}
 			if (tile.seen){
-				tile.alpha = .25;
+				tile.alpha = .5;
 			} else {
-			tile.alpha = 0
+				tile.alpha = 0
 			}
 		}
 	}
@@ -240,10 +273,17 @@ computeFOV()
 	const py = this.map.worldToTileY(this.player.y)
 	
 	// compute fov from player's position
+	let visDist;
+	if (this.player.torch) {
+		visDist = 12;
+	} else {
+		visDist = 6;
+	}
+	
 	this.fov.compute(
 		px,
 		py,
-		Infinity,
+		visDist,
 		(x, y) => {
 			const tile = this.groundLayer.getTileAt(x, y)
 			if (!tile)
