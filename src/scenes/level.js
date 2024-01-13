@@ -31,12 +31,15 @@ export default class Level extends Phaser.Scene {
 		const tile = this.groundLayer.getTileAt(x, y);
 		return tile && !tile.collides;
 	})
-		
+	this.map.forEachTile((tile) => {
+		tile.lightMap = 0;
+	});
 	this.cursorGraphic = this.add.image(0, 0, 'sprites', 'cursor_green.png');
 	this.cursorGraphic.setOrigin(0,0);
 	this.spawnpoints = [];
 	this.fovObjects = [];
 	this.fovLights = [];
+	this.walls = [];
 	this.convertObjects();
 	let spawn = this.spawnpoints[this.registry.get('spawn')];
 	this.player = new Player({
@@ -44,7 +47,6 @@ export default class Level extends Phaser.Scene {
       x: 0, 
       y: 0,
     });
-	
 	this.player.light = this.lights.addLight(this.player.x, this.player.y, 192, 0xfbf236);
 	this.player.torch = true;
 	const player = this.player;
@@ -116,17 +118,77 @@ export default class Level extends Phaser.Scene {
         }, this);
 
 	this.hudText = this.add.text(800, 10, 'WASD to move camera \n Q to center on player \n T to toggle torch', { color: '#00ff00', align: 'right' });
-	   
+	this.fovLights.forEach((light) => {
+		let lightRadius = light.radius / 16;
+		this.renderLightMap(light, lightRadius);
+	});
+		
+	
   }
 
   update (time, delta) 
   {
 	if (this.canUpdateFOV) {	
-		this.computeFOV();
+		// compute fov from player's position
+		let visDist;
+		if (this.player.torch) {
+			visDist = 12;
+		} else {
+			visDist = 6;
+		}
+		this.computeFOV(this.player, visDist);
 		this.playerCord.x = this.player.x;
 		this.playerCord.y = this.player.y;
+		this.walls.forEach((wall) => {
+			let wall1 = this.groundLayer.getTileAt(this.map.worldToTileX(wall.x), this.map.worldToTileY(wall.y-32));
+			let wall2 = this.groundLayer.getTileAt(this.map.worldToTileX(wall.x), this.map.worldToTileY(wall.y+32));
+			let wall3 = this.groundLayer.getTileAt(this.map.worldToTileX(wall.x-32), this.map.worldToTileY(wall.y));
+			let wall4 = this.groundLayer.getTileAt(this.map.worldToTileX(wall.x+32), this.map.worldToTileY(wall.y));
+			if (!wall1) {
+				wall1 = {};
+				wall1.alpha = 0;
+			}
+			if (!wall2) {
+				wall2 = {};
+				wall2.alpha = 0;
+			}
+			if (!wall3) {
+				wall3 = {};
+				wall3.alpha = 0;
+			}
+			if (!wall4) {
+				wall4 = {};
+				wall4.alpha = 0;
+			}
+			let alphaAverage = (wall1.alpha + wall2.alpha + wall3.alpha + wall4.alpha) / 4;
+			wall.alpha = alphaAverage;
+			//console.log(alphaAverage);
+			/*
+			if (alphaAverage < 1) {
+				if (wall.seen) {
+					if (alphaAverage >= .5) {
+						wall.alpha = .5;
+						//console.log(wall.alpha);
+						return
+					} else {
+						wall.alpha = .25;
+						//console.log(wall.alpha);
+						return
+					}
+				} else {
+					wall.alpha = 0;
+					//console.log(wall.alpha);
+					return
+				}
+			} else {
+				wall.alpha = 1;
+				wall.seen = true;
+				return
+			}
+			*/
+		});
 		this.fovObjects.forEach((fovObject) => {
-			let fovTile = this.groundLayer.getTileAt(this.map.worldToTileX(fovObject.x), this.map.worldToTileX(fovObject.y));
+			let fovTile = this.groundLayer.getTileAt(this.map.worldToTileX(fovObject.x), this.map.worldToTileY(fovObject.y));
 			if (fovTile.alpha < 1) {
 				if (fovObject.seen) {
 					fovObject.alpha = .25;
@@ -139,7 +201,7 @@ export default class Level extends Phaser.Scene {
 			}
 		});
 		this.fovLights.forEach((fovLight) => {
-			let fovTile = this.groundLayer.getTileAt(this.map.worldToTileX(fovLight.x), this.map.worldToTileX(fovLight.y));
+			let fovTile = this.groundLayer.getTileAt(this.map.worldToTileX(fovLight.x), this.map.worldToTileY(fovLight.y));
 			if (fovTile.alpha < 1) {
 				if (fovLight.seen) {
 					fovLight.setIntensity(.5);
@@ -167,7 +229,7 @@ export default class Level extends Phaser.Scene {
 	this.cursorGraphic.setPosition(cleanCursorX, cleanCursorY);
   }
   
-  convertObjects ()
+convertObjects ()
   {
 	  //objects in map are checked by type(assigned in object layer in Tiled) and the appopriate extended sprite is created
     const objects = this.map.getObjectLayer('objects'); //find the object layer in the tilemap named 'objects'
@@ -190,61 +252,39 @@ export default class Level extends Phaser.Scene {
 			let lampLight = this.lights.addLight(object.x + 16, object.y -16, 192 , 0xfbf236);
 			this.fovLights.push(lampLight);
 		  }
-		  		  if (object.type === 'wall') {
+		if (object.type === 'wall') {
 			let wall = this.add.image(object.x, object.y -32, 'sprites', 'dungeonWallStoneGrey1.png');
 			wall.seen = false;
-			//this.fovObjects.push(wall);
 			wall.setOrigin(0,0);
 			wall.setPipeline('Light2D');
-          }
-		if (object.type === 'windowWest') {
-		
-			let window1 = this.lights.addLight(object.x, object.y + 16, 192, 0xcbdbfc);
-		
-			let window2 = this.lights.addLight(object.x + 48, object.y + 16, 96, 0xcbdbfc);
-			let window3 = this.lights.addLight(object.x + 80, object.y + 16, 48, 0xcbdbfc);
-			let window4 = this.lights.addLight(object.x + 112, object.y + 16, 24, 0xcbdbfc);
-			this.fovLights.push(window1);
-			this.fovLights.push(window2);
-			this.fovLights.push(window3);
-			this.fovLights.push(window4);
-			
+			this.walls.push(wall);
           }
 		  
-		  if (object.type === 'windowEast') {
-			
-			let window1 = this.lights.addLight(object.x, object.y + 16, 192, 0xcbdbfc);
-		
-			let window2 = this.lights.addLight(object.x - 16, object.y + 16, 96, 0xcbdbfc);
-			let window3 = this.lights.addLight(object.x - 48, object.y + 16, 48, 0xcbdbfc);
-			let window4 = this.lights.addLight(object.x - 80, object.y + 16, 24, 0xcbdbfc);
-			this.fovLights.push(window1);
-			this.fovLights.push(window2);
-			this.fovLights.push(window3);
-			this.fovLights.push(window4);
+		if (object.type === 'outsideLight') {
+			let light = this.lights.addLight(object.x, object.y + 16, 192, 0xcbdbfc);
+			this.fovLights.push(light);
 		  }
 			
 			
       
       }); 
   }
-
-computeFOV()
+  
+renderLightMap(source, range)
 {
 	if (!this.fov || !this.map || !this.groundLayer || !this.player)
 	{
 		return
 	}
-
 	// get camera view bounds
-	const camera = this.cameras.main
+	const camera = this.cameras.main;
 	const bounds = new Phaser.Geom.Rectangle(
 		0,
 		0,
 		this.map.worldToTileX(this.map.widthInPixels) + 2,
-		this.map.worldToTileX(this.map.heightInPixels) + 3
-	)
-
+		this.map.worldToTileY(this.map.heightInPixels) + 3
+	);
+/*
 	// set all tiles within camera view to invisible
 	for (let y = bounds.y; y < bounds.y + bounds.height; y++)
 	{
@@ -267,23 +307,84 @@ computeFOV()
 			}
 		}
 	}
-
-	// get player's position
-	const px = this.map.worldToTileX(this.player.x)
-	const py = this.map.worldToTileY(this.player.y)
+*/
+	// get source's position
+	const px = this.map.worldToTileX(source.x);
+	const py = this.map.worldToTileY(source.y);
 	
-	// compute fov from player's position
-	let visDist;
-	if (this.player.torch) {
-		visDist = 12;
-	} else {
-		visDist = 6;
-	}
 	
 	this.fov.compute(
 		px,
 		py,
-		visDist,
+		range,
+		(x, y) => {
+			const tile = this.groundLayer.getTileAt(x, y)
+			if (!tile)
+			{
+				return false
+			}
+			return 
+		},
+		(x, y) => {
+			const tile = this.groundLayer.getTileAt(x, y)
+			if (!tile)
+			{
+				return
+			}
+			tile.lightMap = .5;
+		}
+	)
+}
+
+computeFOV(source, range)
+{
+	if (!this.fov || !this.map || !this.groundLayer || !this.player)
+	{
+		return
+	}
+
+	// get camera view bounds
+	const camera = this.cameras.main
+	const bounds = new Phaser.Geom.Rectangle(
+		0,
+		0,
+		this.map.worldToTileX(this.map.widthInPixels) + 2,
+		this.map.worldToTileY(this.map.heightInPixels) + 3
+	)
+
+	// set all tiles within camera view to invisible
+	for (let y = bounds.y; y < bounds.y + bounds.height; y++)
+	{
+		for (let x = bounds.x; x < bounds.x + bounds.width; x++)
+		{
+			if (y < 0 || y >= this.map.height || x < 0 || x >= this.map.width)
+			{
+				continue
+			}
+
+			const tile = this.groundLayer.getTileAt(x, y)
+			if (!tile)
+			{
+				continue
+			}
+			if (tile.seen){
+				tile.alpha = tile.lightMap;
+			} else {
+				tile.alpha = 0
+			}
+		}
+	}
+
+	// get source's position
+	const px = this.map.worldToTileX(source.x)
+	const py = this.map.worldToTileY(source.y)
+	
+	
+	
+	this.fov.compute(
+		px,
+		py,
+		Infinity,
 		(x, y) => {
 			const tile = this.groundLayer.getTileAt(x, y)
 			if (!tile)
@@ -298,7 +399,7 @@ computeFOV()
 			{
 				return
 			}
-			tile.alpha = 1
+			tile.alpha = tile.lightMap + .5;
 			tile.seen = true;
 			}
 		)
